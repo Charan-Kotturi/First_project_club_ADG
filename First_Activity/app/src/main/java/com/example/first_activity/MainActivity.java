@@ -15,6 +15,7 @@ import android.opengl.Visibility;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -24,8 +25,9 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
-public class MainActivity extends AppCompatActivity implements ViewModel{
+public class MainActivity extends AppCompatActivity{
 
+    private static final String TAG = "Some bullshit";
     private ImageView camera, imageView;
     private TextView txtToast, txtCount, txtCountView, clear;
     private int mCount = 0;
@@ -34,13 +36,10 @@ public class MainActivity extends AppCompatActivity implements ViewModel{
     public static final int CAMERA_ACTION_CODE = 101;
     public static final int CAMERA_REQUEST_PERMISSION = 102;
 
-    private ViewModel viewModel;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         getSupportActionBar().hide();
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
@@ -48,6 +47,14 @@ public class MainActivity extends AppCompatActivity implements ViewModel{
         }
 
         initView();
+
+        if(null != savedInstanceState) {
+            mCount = savedInstanceState.getInt("name_key");
+            Log.d(TAG, "onCreate: the number i is:"+ mCount);
+            if( mCount != 0){
+                txtCountView.setText(String.valueOf(mCount));
+            }
+        }
 
         txtToast.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,26 +71,13 @@ public class MainActivity extends AppCompatActivity implements ViewModel{
             }
         });
 
-        Bundle bundle = new Bundle();
-        String name = txtCountView.getText().toString();
-        bundle.putString("name_key",name);
-
-        if(viewModel != null) {
-            try {
-                viewModel.onSavedState(bundle);
-            }catch (ClassCastException e){
-                e.printStackTrace();
-                viewModel = null;
-            }
-        }
-
         clear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 imageView.setVisibility(View.INVISIBLE);
                 relativeLayout.setVisibility(View.VISIBLE);
                 mCount = 0;
-                txtCountView.setText("0");
+                txtCountView.setText(String.valueOf(mCount));
             }
         });
 
@@ -146,12 +140,8 @@ public class MainActivity extends AppCompatActivity implements ViewModel{
     }
 
     @Override
-    public void onSavedState(Bundle bundle) {
-        if( bundle != null ) {
-            String name = bundle.getString("name_key");
-            if(name != null){
-                txtCountView.setText(name);
-            }
-        }
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putInt("name_key", mCount);
+        super.onSaveInstanceState(outState);
     }
 }
